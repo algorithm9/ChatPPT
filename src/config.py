@@ -19,6 +19,10 @@ class Config:
 
         with open(self.config_file, 'r') as f:
             config = json.load(f)
+
+            # 加载大模型提供商配置
+            self.llm_provider = config.get('llm_provider', "openai")
+            self.deepseek_model = config.get('deepseek_model', 'deepseek-chat')
             
             # 加载 ChatPPT 运行模式，默认为 "text" 模式
             self.input_mode = config.get('input_mode', "text")

@@ -132,6 +132,7 @@ with gr.Blocks(
     css="""
     body { animation: fadeIn 2s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    #download_ppt .download { width: 100%; }
     """
 ) as demo:
 
@@ -174,11 +175,14 @@ with gr.Blocks(
     # 创建生成 PowerPoint 的按钮
     generate_btn = gr.Button("一键生成 PowerPoint")
 
+    # 创建一个 gr.File 组件用于显示下载链接
+    ppt_download_component = gr.File(label="下载生成的PPT", elem_id="download_ppt")
+
     # 监听生成按钮的点击事件
     generate_btn.click(
         fn=handle_generate,  # 点击时执行的函数
         inputs=contents_chatbot,  # 输入为聊天记录
-        outputs=gr.File()  # 输出为文件下载链接
+        outputs=ppt_download_component  # 输出为文件下载链接
     )
 
 # 主程序入口
@@ -187,5 +191,5 @@ if __name__ == "__main__":
     demo.queue().launch(
         share=False,
         server_name="0.0.0.0",
-        # auth=("django", "qaz!@#$") # ⚠️注意：记住修改密码
+        auth=("user", "12345678") # ⚠️注意：记住修改密码
     )

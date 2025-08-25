@@ -1,5 +1,7 @@
 {
     "input_mode": "text",
+    "llm_provider": "deepseek",
+    "deepseek_model": "deepseek-chat",
     "chatbot_prompt": "prompts/chatbot.txt",
     "content_formatter_prompt": "prompts/content_formatter.txt",
     "content_assistant_prompt": "prompts/content_assistant.txt",

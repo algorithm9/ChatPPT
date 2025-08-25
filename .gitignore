@@ -171,3 +171,5 @@ jupyter/*.pptx
 nohup.out
 images/*
 test_results.txt
+
+.idea/

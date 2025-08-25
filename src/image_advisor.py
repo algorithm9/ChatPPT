@@ -11,6 +11,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 from logger import LOG  # 导入日志工具
+from model_factory import get_model
 
 class ImageAdvisor(ABC):
     """
@@ -41,11 +42,7 @@ class ImageAdvisor(ABC):
             ("human", "**Content**:\n\n{input}"),  # 消息占位符
         ])
 
-        self.model = ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0.7,
-            max_tokens=4096,
-        )
+        self.model = get_model()
         self.advisor = chat_prompt | self.model
 
     def generate_images(self, markdown_content, image_directory="tmps", num_images=3):
