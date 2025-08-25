@@ -13,14 +13,21 @@ from langchain_core.prompts import ChatPromptTemplate
 from logger import LOG  # 导入日志工具
 from model_factory import get_model
 
+from config import Config
+from image_generator import ImageGenerator 
+
 class ImageAdvisor(ABC):
     """
     聊天机器人基类，提供建议配图的功能。
     """
     def __init__(self, prompt_file="./prompts/image_advisor.txt"):
+        self.config = Config()
         self.prompt_file = prompt_file
         self.prompt = self.load_prompt()
         self.create_advisor()
+        if self.config.image_provider == 'stable_diffusion':
+            self.image_generator = ImageGenerator(self.config.image_generator_prompt)
+
 
     def load_prompt(self):
         """
@@ -58,35 +65,61 @@ class ImageAdvisor(ABC):
             content_with_images (str): 嵌入图片后的内容
             image_pair (dict): 每个幻灯片标题对应的图像路径
         """
-        response = self.advisor.invoke({
-            "input": markdown_content,
-        })
-
+        response = self.advisor.invoke({"input": markdown_content})
         LOG.debug(f"[Advisor 建议配图]\n{response.content}")
+        
+        # 将 Markdown 文本按幻灯片分割
+        slides = self._split_markdown_by_slides(markdown_content)
+        slide_contents = {title: content for title, content in slides}
 
         keywords = self.get_keywords(response.content)
         image_pair = {}
 
         for slide_title, query in keywords.items():
-            # 检索图像
-            images = self.get_bing_images(slide_title, query, num_images, timeout=1, retries=3)
-            if images:
-                for image in images:
-                    LOG.debug(f"Name: {image['slide_title']}, Query: {image['query']} 分辨率：{image['width']}x{image['height']}")
+            save_path = None
+            if self.config.image_provider == 'stable_diffusion':
+                # 使用文生图模型
+                slide_text = slide_contents.get(slide_title, "")
+                if slide_text:
+                    save_path = self.image_generator.generate_image(slide_title, slide_text)
             else:
-                LOG.warning(f"No images found for {slide_title}.")
-                continue
-
-            # 仅处理分辨率最高的图像
-            img = images[0]
-            save_directory = f"images/{image_directory}"
-            os.makedirs(save_directory, exist_ok=True)
-            save_path = os.path.join(save_directory, f"{img['slide_title']}_1.jpeg")
-            self.save_image(img["obj"], save_path)
-            image_pair[img["slide_title"]] = save_path
+                # 默认使用 Bing 搜索引擎
+                images = self.get_bing_images(slide_title, query, num_images, timeout=1, retries=3)
+                if images:
+                    img = images[0]
+                    save_directory = f"images/{image_directory}"
+                    os.makedirs(save_directory, exist_ok=True)
+                    save_path = os.path.join(save_directory, f"{img['slide_title']}_1.jpeg")
+                    self.save_image(img["obj"], save_path)
+            
+            if save_path:
+                image_pair[slide_title] = save_path
 
         content_with_images = self.insert_images(markdown_content, image_pair)
         return content_with_images, image_pair
+    
+    def _split_markdown_by_slides(self, markdown_content):
+        """
+        将完整的 markdown 文本分割成 (标题, 内容) 的元组列表。
+        """
+        slides = []
+        lines = markdown_content.strip().split('\n')
+        current_title = ""
+        current_content = []
+
+        for line in lines:
+            if line.startswith('## '):
+                if current_title:
+                    slides.append((current_title, '\n'.join(current_content)))
+                current_title = line[3:].strip()
+                current_content = [line]
+            elif current_title:
+                current_content.append(line)
+        
+        if current_title:
+            slides.append((current_title, '\n'.join(current_content)))
+        
+        return slides
 
     def get_keywords(self, advice):
         """

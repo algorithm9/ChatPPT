@@ -2,9 +2,12 @@
     "input_mode": "text",
     "llm_provider": "deepseek",
     "deepseek_model": "deepseek-chat",
+    "image_provider": "stable_diffusion",
+    "sd_model": "stabilityai/stable-diffusion-xl-base-1.0",
     "chatbot_prompt": "prompts/chatbot.txt",
     "content_formatter_prompt": "prompts/content_formatter.txt",
     "content_assistant_prompt": "prompts/content_assistant.txt",
     "image_advisor_prompt": "prompts/image_advisor.txt",
+    "image_generator_prompt": "prompts/image_generator.txt",
     "ppt_template": "templates/SimpleTemplate.pptx"
 }

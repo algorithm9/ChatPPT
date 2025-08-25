@@ -33,6 +33,12 @@ class Config:
             # 加载 ChatBot 提示信息
             self.chatbot_prompt = config.get('chatbot_prompt', '')
 
+            # 新增图片生成器配置
+            self.image_provider = config.get('image_provider', 'bing_search')
+            self.sd_model = config.get('sd_model', '')
+            self.image_generator_prompt = config.get('image_generator_prompt', '')
+
+
             # 加载内容格式化提示和助手提示
             self.content_formatter_prompt = config.get('content_formatter_prompt', '')
             self.content_assistant_prompt = config.get('content_assistant_prompt', '')
